@@ -15,10 +15,14 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod'
 
 const API_BASE = process.env.GASFEE_API_BASE || 'https://api.gasfeepredictor.com'
+const VERSION = '1.0.1'
+// Identifiable UA so the origin (and Cloudflare analytics) can attribute and
+// count MCP-driven traffic separately from browsers and other clients.
+const USER_AGENT = `gasfeepredictor-mcp/${VERSION} (+https://github.com/higherbeing/gasfeepredictor-mcp)`
 
 async function api(path) {
   const res = await fetch(`${API_BASE}${path}`, {
-    headers: { accept: 'application/json' },
+    headers: { accept: 'application/json', 'user-agent': USER_AGENT },
     signal: AbortSignal.timeout(10_000),
   })
   if (!res.ok) throw new Error(`GET ${path} → HTTP ${res.status}`)
@@ -53,7 +57,7 @@ const ACTION_GAS = {
   nft_mint: 250000,
 }
 
-const server = new McpServer({ name: 'gasfeepredictor', version: '1.0.0' })
+const server = new McpServer({ name: 'gasfeepredictor', version: VERSION })
 
 server.tool(
   'get_current_gas',
