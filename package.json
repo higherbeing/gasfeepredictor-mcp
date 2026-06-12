@@ -1,0 +1,37 @@
+{
+  "name": "gasfeepredictor-mcp",
+  "version": "1.0.0",
+  "mcpName": "io.github.higherbeing/gasfeepredictor-mcp",
+  "description": "MCP server exposing live Ethereum + L2 gas fee data from Gas Fee Predictor (gasfeepredictor.com) to AI agents — Claude Desktop, OpenClaw, Cursor, Cline, and any MCP client.",
+  "type": "module",
+  "bin": {
+    "gasfeepredictor-mcp": "index.mjs"
+  },
+  "main": "index.mjs",
+  "files": [
+    "index.mjs",
+    "README.md"
+  ],
+  "scripts": {
+    "start": "node index.mjs"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "ethereum",
+    "gas",
+    "gas-fees",
+    "layer2",
+    "ai-agent",
+    "claude",
+    "openclaw"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.23.0"
+  }
+}

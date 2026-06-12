@@ -1,0 +1,18 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-09-29/server.json",
+  "name": "io.github.higherbeing/gasfeepredictor-mcp",
+  "description": "Live Ethereum and Layer-2 gas-fee data for AI agents: current gas, cheapest L2, ETH price, best time to transact, and per-action cost estimates.",
+  "version": "1.0.0",
+  "repository": {
+    "url": "https://github.com/higherbeing/gasfeepredictor-mcp",
+    "source": "github"
+  },
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "gasfeepredictor-mcp",
+      "version": "1.0.0",
+      "transport": { "type": "stdio" }
+    }
+  ]
+}
