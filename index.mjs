@@ -15,7 +15,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod'
 
 const API_BASE = process.env.GASFEE_API_BASE || 'https://api.gasfeepredictor.com'
-const VERSION = '1.0.1'
+const VERSION = '1.1.0'
 // Identifiable UA so the origin (and Cloudflare analytics) can attribute and
 // count MCP-driven traffic separately from browsers and other clients.
 const USER_AGENT = `gasfeepredictor-mcp/${VERSION} (+https://github.com/higherbeing/gasfeepredictor-mcp)`
@@ -27,6 +27,22 @@ async function api(path) {
   })
   if (!res.ok) throw new Error(`GET ${path} → HTTP ${res.status}`)
   return res.json()
+}
+
+// /api/dashboard returns ethPrice: null whenever its upstream price fetch fails
+// or is in cooldown — gas data stays valid, only the price drops out. That is
+// exactly what production did on first deploy of the hosted server, rendering
+// "ETH ≈ $undefined". /api/eth-price has its own provider chain and was serving
+// fine at the same moment, so fall back to it before giving up.
+async function ethUsd(dashboard) {
+  const direct = dashboard?.ethPrice?.usd
+  if (typeof direct === 'number' && isFinite(direct)) return direct
+  try {
+    const p = await api('/api/eth-price')
+    return typeof p?.usd === 'number' && isFinite(p.usd) ? p.usd : null
+  } catch {
+    return null
+  }
 }
 
 // Wrap a tool handler so any error becomes a clean MCP error result instead
@@ -66,11 +82,11 @@ server.tool(
   tool(async () => {
     const d = await api('/api/dashboard')
     const g = d.currentGas || {}
-    const eth = d.ethPrice?.usd
+    const eth = await ethUsd(d)
     const dec = d.decision || {}
     const text =
       `Ethereum mainnet gas right now: ${g.low} (low) / ${g.average} (avg) / ${g.high} (high) Gwei. ` +
-      `ETH ≈ $${eth}. ` +
+      (eth === null ? 'ETH price temporarily unavailable. ' : `ETH ≈ $${eth}. `) +
       (dec.recommendation
         ? `Recommendation: ${dec.recommendation}` +
           (dec.recommendation === 'WAIT' && dec.expectedSavingsPct
@@ -164,18 +180,18 @@ server.tool(
   tool(async ({ action, gas_units, tier }) => {
     const d = await api('/api/dashboard')
     const gwei = d.currentGas?.[tier]
-    const ethUsd = d.ethPrice?.usd
-    if (typeof gwei !== 'number' || typeof ethUsd !== 'number')
+    const ethPriceUsd = await ethUsd(d)
+    if (typeof gwei !== 'number' || typeof ethPriceUsd !== 'number')
       throw new Error('live gas/price unavailable')
     const units = action === 'custom' ? gas_units : ACTION_GAS[action]
     if (!units) throw new Error('custom action requires gas_units')
-    const usd = (units * gwei * ethUsd) / 1e9
+    const usd = (units * gwei * ethPriceUsd) / 1e9
     const text =
       `A ${action.replace('_', ' ')} (~${units.toLocaleString()} gas) at the ${tier} tier ` +
-      `costs about ${fmtUsd(usd)} right now (${gwei} Gwei, ETH ≈ $${ethUsd}).` +
+      `costs about ${fmtUsd(usd)} right now (${gwei} Gwei, ETH ≈ $${ethPriceUsd}).` +
       `\nTip: the same action on an L2 is usually under $1 — call get_l2_gas.` +
       `\nSource: ${d.citation || 'gasfeepredictor.com'}`
-    return { text, data: { action, gasUnits: units, tier, gwei, ethUsd, usd } }
+    return { text, data: { action, gasUnits: units, tier, gwei, ethUsd: ethPriceUsd, usd } }
   })
 )
 

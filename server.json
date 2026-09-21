@@ -1,12 +1,27 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.higherbeing/gasfeepredictor-mcp",
-  "description": "Live Ethereum and L2 gas fees for AI agents: current gas, cheapest L2, ETH price, cost estimates.",
+  "title": "Gas Fee Predictor",
+  "description": "Live Ethereum and L2 gas fees: current gas, cheapest L2, forecast, ETH price, cost estimates.",
+  "version": "1.1.0",
+  "websiteUrl": "https://gasfeepredictor.com/docs/api",
   "repository": {
     "url": "https://github.com/higherbeing/gasfeepredictor-mcp",
     "source": "github"
   },
-  "version": "1.0.1",
+  "icons": [
+    {
+      "src": "https://api.gasfeepredictor.com/apple-touch-icon.png",
+      "mimeType": "image/png",
+      "sizes": ["180x180"]
+    }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://api.gasfeepredictor.com/api/mcp"
+    }
+  ],
   "packages": [
     {
       "registryType": "npm",
